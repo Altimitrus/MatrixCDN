@@ -69,7 +69,7 @@ namespace MatrixCDN.Controllers
         [Route("/settings")]
         async public Task<ActionResult> Settings()
         {
-            return Content(await HttpClient.Post($"http://127.0.0.1:1000/settings", ""), "application/json");
+            return Content(await HttpClient.Post($"http://127.0.0.1:1000/settings", "{\"action\":\"get\"}"), "application/json");
         }
         #endregion
 
