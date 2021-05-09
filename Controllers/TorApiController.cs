@@ -53,7 +53,7 @@ namespace MatrixCDN.Controllers
         [Route("/")]
         public ActionResult Index()
         {
-            return Content($"online: {CronController.currenthostAMS.online}");
+            return Content($"online: {CronController.currenthostAMS.online}\n\nhttps://github.com/cores-system/MatrixCDN");
         }
         #endregion
 
