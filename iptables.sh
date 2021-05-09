@@ -13,7 +13,6 @@
 /sbin/iptables -A INPUT -i lo -j ACCEPT
 
 # Белый список IP
-/sbin/iptables -A INPUT -s 89.149.200.99 -j ACCEPT  #local
 /sbin/iptables -A INPUT -s 127.0.0.1 -j ACCEPT
 
 # Разрешить сессии
