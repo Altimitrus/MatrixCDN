@@ -10,5 +10,5 @@ wget -O - http://nserv.host/dl/MatrixCDN/install.sh | bash
 Cache size: 192<br>
 Reader readahead: 45<br>
 Torrent disconnect timeout: 240<br>
-Connections limit: 24<br>
+Connections limit: 23<br>
 Dht connection limit: 400
