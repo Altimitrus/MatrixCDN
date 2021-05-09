@@ -124,5 +124,14 @@ namespace MatrixCDN.Controllers
             return "ok";
         }
         #endregion
+
+        #region saveTorDb
+        public string saveTorDb()
+        {
+            System.IO.File.WriteAllText("torDb.json", JsonConvert.SerializeObject(TorApiController.torDb, Formatting.Indented));
+
+            return "ok";
+        }
+        #endregion
     }
 }

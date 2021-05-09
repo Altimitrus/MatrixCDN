@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using MatrixCDN.Models;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -33,7 +34,14 @@ namespace MatrixCDN.Engine.Middlewares
                     string passwd = decodedString[1];
 
                     if (Startup.accs.TryGetValue(login, out string _pass) && _pass == passwd)
+                    {
+                        httpContext.Features.Set(new UserData() 
+                        {
+                            login = login
+                        });
+
                         return _next(httpContext);
+                    }
                 }
 
                 httpContext.Response.StatusCode = 401;

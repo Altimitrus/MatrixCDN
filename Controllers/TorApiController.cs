@@ -9,6 +9,8 @@ using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using MatrixCDN.Engine;
 using MatrixCDN.Models;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace MatrixCDN.Controllers
 {
@@ -19,9 +21,17 @@ namespace MatrixCDN.Controllers
 
         static Random random = new Random();
 
+        public static Dictionary<string, List<TorInfo>> torDb = System.IO.File.Exists("torDb.json") ? JsonConvert.DeserializeObject<Dictionary<string, List<TorInfo>>>(System.IO.File.ReadAllText("torDb.json")) : new Dictionary<string, List<TorInfo>>();
+
         public TorApiController(IMemoryCache memoryCache)
         {
             this.memoryCache = memoryCache;
+        }
+
+        string getUserId()
+        {
+            var userData = HttpContext?.Features?.Get<UserData>();
+            return userData?.login ?? "public";
         }
 
         string getHash(string link)
@@ -108,6 +118,25 @@ namespace MatrixCDN.Controllers
             // Парсим перменные
             var tinfo = JsonConvert.DeserializeObject<TorInfo>(json);
 
+            string userid = getUserId();
+
+            #region action list
+            if (tinfo.action == "list")
+            {
+                if (!torDb.TryGetValue(userid, out List<TorInfo> infos))
+                    return Content("[]", "application/json");
+
+                return Json(infos.Select(i => new
+                {
+                    i.title,
+                    i.poster,
+                    i.hash,
+                    stat = 3,
+                    stat_string = "Torrent working"
+                }));
+            }
+            #endregion
+
             if (tinfo.action != "add" && tinfo.action != "rem" && tinfo.action != "get")
                 return Json(new { code = 2 });
 
@@ -123,6 +152,30 @@ namespace MatrixCDN.Controllers
             {
                 case "add":
                     {
+                        #region Сохраняем в базу
+                        if (tinfo.save_to_db)
+                        {
+                            if (!torDb.TryGetValue(userid, out List<TorInfo> infos))
+                                torDb[userid] = new List<TorInfo>();
+
+                            infos = torDb[userid];
+                            var item = infos.FirstOrDefault(i => i.hash == tinfo.hash);
+
+                            if (item != null)
+                            {
+                                item.title = tinfo.title;
+                                item.link = tinfo.link;
+                                item.poster = tinfo.poster;
+                            }
+                            else
+                            {
+                                infos.Insert(0, tinfo);
+                            }
+
+                            torDb[userid] = infos;
+                        }
+                        #endregion
+
                         string data = "{\"action\":\"add\",\"link\":\"" + tinfo.link + "\",\"save_to_db\":false}";
                         return Content(await HttpClient.Post($"http://{thost}/torrents", data), "application/json");
                     }
@@ -143,6 +196,19 @@ namespace MatrixCDN.Controllers
 
                 case "rem":
                     {
+                        #region Удаляем с базы
+                        if (torDb.TryGetValue(userid, out List<TorInfo> infos))
+                        {
+                            var item = infos.FirstOrDefault(i => i.hash == tinfo.hash);
+
+                            if (item != null)
+                            {
+                                infos.Remove(item);
+                                torDb[userid] = infos;
+                            }
+                        }
+                        #endregion
+
                         string data = "{\"action\":\"rem\",\"hash\":\"" + tinfo.hash + "\"}";
                         return Content(await HttpClient.Post($"http://{thost}/torrents", data), "application/json");
                     }
@@ -190,6 +256,37 @@ namespace MatrixCDN.Controllers
                 string hash = Regex.Match(resupload, "\"hash\":\"([^\"]+)\"").Groups[1].Value;
                 if (string.IsNullOrWhiteSpace(hash))
                     return Json(new { code = 3 });
+
+                #region Сохраняем в базу
+                if (HttpContext.Request.Form.TryGetValue("save", out var _save) && _save.ToString() == "true")
+                {
+                    string userid = getUserId();
+                    if (!torDb.TryGetValue(userid, out List<TorInfo> infos))
+                        torDb[userid] = new List<TorInfo>();
+
+                    infos = torDb[userid];
+                    var item = infos.FirstOrDefault(i => i.hash == hash);
+
+                    var tinfo = new TorInfo()
+                    {
+                        title = Regex.Match(resupload, "\"name\":\"([^\"]+)\"").Groups[1].Value.Split(".")[0],
+                        poster = Regex.Match(resupload, "\"poster\":\"([^\"]+)\"").Groups[1].Value,
+                        hash = hash
+                    };
+
+                    if (item != null)
+                    {
+                        item.title = tinfo.title;
+                        item.poster = tinfo.poster;
+                    }
+                    else
+                    {
+                        infos.Insert(0, tinfo);
+                    }
+
+                    torDb[userid] = infos;
+                }
+                #endregion
 
                 // Сохраняем кеш хоста
                 memoryCache.Set($"tplay:torrents:{HttpContext.Connection.RemoteIpAddress}:{hash}", thost, DateTime.Today.AddHours(4));
