@@ -22,7 +22,7 @@ namespace MatrixCDN.Engine.Middlewares
                 return Task.CompletedTask;
             }
 
-            if (Startup.accs != null && !Regex.IsMatch(httpContext.Request.Path.Value, "^/(echo|settings|viewed)?$"))
+            if (Startup.accs != null && !Regex.IsMatch(httpContext.Request.Path.Value, "^/(echo|settings|viewed|cron/|$)"))
             {
                 if (httpContext.Request.Headers.TryGetValue("Authorization", out var Authorization))
                 {
