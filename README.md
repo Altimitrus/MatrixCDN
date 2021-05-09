@@ -1,9 +1,9 @@
 # Установка на Debian 9.x
 wget -O - http://nserv.host/dl/MatrixCDN/install.sh | bash
 
-# MatrixCDN
+# MatriX.CDN
 Работает на Debian 9.x<br>
-Использует TorrServer Matrix.93 (40 экземпляров)<br>
+Использует TorrServer MatriX.93 (40 экземпляров)<br>
 Общий расход памяти ~700MB RAM
 
 # Настройки каждого экземпляра
