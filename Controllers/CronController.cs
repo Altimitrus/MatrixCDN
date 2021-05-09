@@ -13,7 +13,7 @@ namespace MatrixCDN.Controllers
     public class CronController : Controller
     {
         #region CronController
-        public static (string host, int[] ports, int online) currenthostAMS = ("89.149.200.99", new int[1] { 1000 }, 0);
+        public static (int[] ports, int online) currenthostAMS = (new int[1] { 1000 }, 0);
 
         IMemoryCache memory;
 
@@ -53,7 +53,7 @@ namespace MatrixCDN.Controllers
 
                             try
                             {
-                                json = await (await client.PostAsync($"http://89.149.200.99:{port}/torrents", new StringContent("{\"action\":\"list\"}")))?.Content?.ReadAsStringAsync();
+                                json = await (await client.PostAsync($"http://127.0.0.1:{port}/torrents", new StringContent("{\"action\":\"list\"}")))?.Content?.ReadAsStringAsync();
                             }
                             catch { }
 

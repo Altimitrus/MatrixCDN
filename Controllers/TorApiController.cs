@@ -39,7 +39,7 @@ namespace MatrixCDN.Controllers
             if (!memoryCache.TryGetValue(memKey, out string thost))
             {
                 var ports = (int[])CronController.currenthostAMS.ports.Clone();
-                thost = $"{CronController.currenthostAMS.host}:{ports[random.Next(0, ports.Length)]}";
+                thost = $"{HttpContext.Request.Host.Value}:{ports[random.Next(0, ports.Length)]}";
 
                 memoryCache.Set(memKey, thost, DateTime.Now.AddHours(4));
             }
@@ -49,34 +49,27 @@ namespace MatrixCDN.Controllers
         #endregion
 
 
-        #region Index / Echo
+        #region Index
         [Route("/")]
         public ActionResult Index()
         {
             return Content($"online: {CronController.currenthostAMS.online}");
         }
+        #endregion
 
+        #region Echo
         [Route("/echo")]
         public ActionResult Echo()
         {
-            return Content("MatriX.90");
+            return Content("MatriX.CDN");
         }
         #endregion
 
         #region settings
         [Route("/settings")]
-        public ActionResult Settings()
+        async public Task<ActionResult> Settings()
         {
-            return Json(new 
-            {
-                CacheSize = 201326592,
-                ReaderReadAHead = 45,
-                RetrackersMode = 1,
-                TorrentDisconnectTimeout = 240,
-                DownloadRateLimit = 0,
-                ConnectionsLimit = 23,
-                DhtConnectionLimit = 400
-            });
+            return Content(await HttpClient.Post($"http://127.0.0.1:1000/torrents", ""), "application/json");
         }
         #endregion
 
@@ -100,19 +93,19 @@ namespace MatrixCDN.Controllers
             // Получаем данные запроса
             string json = Encoding.UTF8.GetString(mem.ToArray());
             if (string.IsNullOrWhiteSpace(json))
-                return Json(new { code = 3 });
+                return Json(new { code = 1 });
 
             // Парсим перменные
             var tinfo = JsonConvert.DeserializeObject<TorInfo>(json);
 
             if (tinfo.action != "add" && tinfo.action != "rem" && tinfo.action != "get")
-                return Content("[]", "application/json");
+                return Json(new { code = 2 });
 
             if (string.IsNullOrWhiteSpace(tinfo.hash))
                 tinfo.hash = getHash(tinfo.link);
 
             if (string.IsNullOrWhiteSpace(tinfo.hash))
-                return Content("[]", "application/json");
+                return Json(new { code = 3 });
 
             string thost = getHost(tinfo.hash);
 
@@ -145,7 +138,7 @@ namespace MatrixCDN.Controllers
                     }
 
                 default:
-                    return Content("[]", "application/json");
+                    return Json(new { code = 4 });
             }
         }
         #endregion
@@ -160,11 +153,11 @@ namespace MatrixCDN.Controllers
             var torrent = mem.ToArray();
 
             if (torrent == null || torrent.Length == 0)
-                return Content("[]", "application/json");
+                return Json(new { code = 1 });
 
             // Получаем хост
             var ports = CronController.currenthostAMS.ports;
-            string thost = $"{CronController.currenthostAMS.host}:{ports[random.Next(0, ports.Length)]}";
+            string thost = $"{HttpContext.Request.Host.Value}:{ports[random.Next(0, ports.Length)]}";
 
             string resupload = null;
 
@@ -182,11 +175,11 @@ namespace MatrixCDN.Controllers
                 resupload = await response.Content.ReadAsStringAsync();
 
                 if (string.IsNullOrWhiteSpace(resupload))
-                    return Content("[]", "application/json");
+                    return Json(new { code = 2 });
 
                 string hash = Regex.Match(resupload, "\"hash\":\"([^\"]+)\"").Groups[1].Value;
                 if (string.IsNullOrWhiteSpace(hash))
-                    return Content("[]", "application/json");
+                    return Json(new { code = 3 });
 
                 // Сохраняем кеш хоста
                 memoryCache.Set($"tplay:torrents:{HttpContext.Connection.RemoteIpAddress}:{hash}", thost, DateTime.Today.AddHours(4));
@@ -204,7 +197,7 @@ namespace MatrixCDN.Controllers
         {
             string hash = getHash(link);
             if (hash == null)
-                return Content("[]", "application/json");
+                return Json(new { code = 1 });
 
             string thost = getHost(hash);
             string queryString = HttpContext.Request.Path.Value + HttpContext.Request.QueryString.Value;
@@ -225,7 +218,7 @@ namespace MatrixCDN.Controllers
         {
             string hash = getHash(link);
             if (hash == null)
-                return Content("", "audio/x-mpegurl");
+                return Content("null", "audio/x-mpegurl");
 
             string thost = getHost(hash);
             string queryString = HttpContext.Request.Path.Value + HttpContext.Request.QueryString.Value;
