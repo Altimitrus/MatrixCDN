@@ -107,6 +107,7 @@ namespace MatrixCDN.Controllers
             }
             catch { }
 
+            workUpdateNodes = false;
             return "ok";
         }
         #endregion
