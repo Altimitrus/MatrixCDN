@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using MatrixCDN.Engine;
+using Newtonsoft.Json;
 
 namespace MatrixCDN.Controllers
 {
@@ -108,6 +109,18 @@ namespace MatrixCDN.Controllers
             catch { }
 
             workUpdateNodes = false;
+            return "ok";
+        }
+        #endregion
+
+        #region UpdateAccs
+        public string UpdateAccs()
+        {
+            if (System.IO.File.Exists("accs.db"))
+                Startup.accs = JsonConvert.DeserializeObject<Dictionary<string, string>>(System.IO.File.ReadAllText("accs.db"));
+            else
+                Startup.accs = null;
+
             return "ok";
         }
         #endregion

@@ -8,5 +8,10 @@ namespace MatrixCDN.Engine.Middlewares
         {
             return builder.UseMiddleware<ModHeaders>();
         }
+
+        public static IApplicationBuilder UseAccs(this IApplicationBuilder builder)
+        {
+            return builder.UseMiddleware<Accs>();
+        }
     }
 }

@@ -13,8 +13,8 @@ namespace MatrixCDN.Engine.Middlewares
 
         public Task Invoke(HttpContext httpContext)
         {
-            httpContext.Response.Headers.Add("Access-Control-Allow-Headers", "Accept, Content-Type");
-            httpContext.Response.Headers.Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+            httpContext.Response.Headers.Add("Access-Control-Allow-Headers", "Origin, Content-Length, Content-Type, X-Requested-With, Accept, Authorization");
+            httpContext.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, HEAD");
             httpContext.Response.Headers.Add("Access-Control-Allow-Origin", "*");
 
             //System.Console.WriteLine("\n\n" + httpContext.Request.Path.Value + httpContext.Request.QueryString.Value);
