@@ -69,7 +69,17 @@ namespace MatrixCDN.Controllers
         [Route("/settings")]
         async public Task<ActionResult> Settings()
         {
-            return Content(await HttpClient.Post($"http://127.0.0.1:1000/settings", "{\"action\":\"get\"}"), "application/json");
+            string memKey = $"tplay:settings";
+            if (!memoryCache.TryGetValue(memKey, out string settings))
+            {
+                settings = await HttpClient.Post($"http://127.0.0.1:1000/settings", "{\"action\":\"get\"}");
+                if (string.IsNullOrWhiteSpace(settings))
+                    return Content("settings == null");
+
+                memoryCache.Set(memKey, settings, DateTime.Now.AddMinutes(20));
+            }
+
+            return Content(settings, "application/json");
         }
         #endregion
 
