@@ -24,7 +24,7 @@ namespace MatrixCDN.Engine.Middlewares
 
             if (Startup.accs != null && !Regex.IsMatch(httpContext.Request.Path.Value, "^/(echo|settings|viewed)?$"))
             {
-                if (httpContext.Request.Headers.TryGetValue("Authorization", out var Authorization) && Authorization.ToString().StartsWith("Basic "))
+                if (httpContext.Request.Headers.TryGetValue("Authorization", out var Authorization))
                 {
                     byte[] data = Convert.FromBase64String(Authorization.ToString().Replace("Basic ", ""));
                     string[] decodedString = Encoding.UTF8.GetString(data).Split(":");
