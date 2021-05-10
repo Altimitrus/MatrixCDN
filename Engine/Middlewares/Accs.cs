@@ -17,7 +17,7 @@ namespace MatrixCDN.Engine.Middlewares
 
         public Task Invoke(HttpContext httpContext)
         {
-            if (httpContext.Request.Headers.TryGetValue("Access-Control-Request-Headers", out var AccessControl) && AccessControl == "authorization")
+            if (httpContext.Request.Method == "OPTIONS" && httpContext.Request.Headers.TryGetValue("Access-Control-Request-Headers", out var AccessControl) && AccessControl == "authorization")
             {
                 httpContext.Response.StatusCode = 204;
                 return Task.CompletedTask;

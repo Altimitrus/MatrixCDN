@@ -11,6 +11,7 @@ using MatrixCDN.Engine;
 using MatrixCDN.Models;
 using System.Collections.Generic;
 using System.Linq;
+using IO = System.IO;
 
 namespace MatrixCDN.Controllers
 {
@@ -63,6 +64,9 @@ namespace MatrixCDN.Controllers
         [Route("/")]
         public ActionResult Index()
         {
+            if (IO.File.Exists("index.html"))
+                return Content(IO.File.ReadAllText("index.html").Replace("{online}", CronController.currenthostAMS.online.ToString()), "text/html");
+
             return Content($"online: {CronController.currenthostAMS.online}\n\nhttps://github.com/cores-system/MatrixCDN/blob/master/README.md");
         }
         #endregion
@@ -82,7 +86,7 @@ namespace MatrixCDN.Controllers
             string memKey = $"tplay:settings";
             if (!memoryCache.TryGetValue(memKey, out string settings))
             {
-                settings = await HttpClient.Post($"http://127.0.0.1:1000/settings", "{\"action\":\"get\"}");
+                settings = await HttpClient.Post($"http://127.0.0.1:1010/settings", "{\"action\":\"get\"}");
                 if (string.IsNullOrWhiteSpace(settings))
                     return Content("settings == null");
 
@@ -124,7 +128,7 @@ namespace MatrixCDN.Controllers
             if (tinfo.action == "list")
             {
                 if (!torDb.TryGetValue(userid, out List<TorInfo> infos))
-                    return Content("[]", "application/json");
+                    return Json(new { code = 2 });
 
                 return Json(infos.Select(i => new
                 {
@@ -334,7 +338,8 @@ namespace MatrixCDN.Controllers
             if (m3u == null)
                 return Content(string.Empty, "audio/x-mpegurl");
 
-            string newm3u = string.Empty;
+            StringBuilder newm3u = new StringBuilder();
+
             foreach (string line in m3u.Split("\n"))
             {
                 if (string.IsNullOrWhiteSpace(line))
@@ -348,15 +353,15 @@ namespace MatrixCDN.Controllers
                     string host = thost.Split(":")[0];
                     string port = thost.Split(":")[1];
 
-                    newm3u += $"http://{host}:8090/{port}:{index}/{filehash}" + "\n";
+                    newm3u.Append($"http://{host}:8090/{port}:{index}/{filehash}" + "\n");
                 }
                 else
                 {
-                    newm3u += line + "\n";
+                    newm3u.Append(line + "\n");
                 }
             }
 
-            return Content(newm3u, "audio/x-mpegurl");
+            return Content(newm3u.ToString(), "audio/x-mpegurl");
         }
         #endregion
     }

@@ -14,7 +14,7 @@ namespace MatrixCDN.Controllers
     public class CronController : Controller
     {
         #region CronController
-        public static (int[] ports, int online) currenthostAMS = (new int[1] { 1000 }, 0);
+        public static (int[] ports, int online) currenthostAMS = (new int[1] { 1010 }, 0);
 
         IMemoryCache memory;
 
@@ -45,7 +45,7 @@ namespace MatrixCDN.Controllers
                         int online = 0;
                         var ports = new List<(int port, int torrenst)>();
 
-                        for (int i = 0; i <= 40; i++)
+                        for (int i = 10; i <= 40; i++)
                         {
                             int port = i + 1000;
                             string tid = (i + 100).ToString();
