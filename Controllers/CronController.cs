@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using MatrixCDN.Engine;
 using Newtonsoft.Json;
+using System.Text;
 
 namespace MatrixCDN.Controllers
 {
@@ -109,6 +110,23 @@ namespace MatrixCDN.Controllers
             catch { }
 
             workUpdateNodes = false;
+            return "ok";
+        }
+        #endregion
+
+        #region UpdateSettings
+        async public Task<string> UpdateSettings()
+        {
+            string data = System.IO.File.ReadAllText("settings.json");
+
+            using (var client = new System.Net.Http.HttpClient())
+            {
+                client.Timeout = TimeSpan.FromSeconds(10);
+
+                for (int i = 10; i <= 40; i++)
+                    _ = await client.PostAsync($"http://127.0.0.1:{i + 1000}/settings", new StringContent("{\"action\":\"set\",\"sets\":" + data + "}", Encoding.UTF8, "application/json"));
+            }
+
             return "ok";
         }
         #endregion
